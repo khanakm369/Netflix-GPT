@@ -1,31 +1,48 @@
 import React, { useRef, useState } from 'react';
 import Header from './Header';
 import {checkValidateData} from "../utilis/Validate";
+import {  createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from '../utilis/firebase';
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const name = useRef(null);
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
+  const email = useRef(null);
+  const password = useRef(null);
 
 
   const handleButtonClick = () => {
-    const emailValue = emailRef.current.value;
-    const passwordValue = passwordRef.current.value;
+  
 
-    const validationMessage = checkValidateData(emailValue, passwordValue);
-    if (validationMessage) {
-        console.error(validationMessage);
-       // Displaying error message to the user (use more user-friendly methods in production)
-        setErrorMessage(validationMessage);
-    } else {
-        console.log("Both email and password are valid!");
-        setErrorMessage(null); 
-        console.log(emailValue)
-        console.log(passwordValue)
+    const message = checkValidateData(email.current.value, password.current.value);
+    setErrorMessage(message);
+
+    if (message) return;
+
+    if(!isSignInForm){
+      createUserWithEmailAndPassword(
+        auth, 
+        email.current.value, 
+        password.current.value
+      )
+      .then((userCredential) => {
+        // Signed up 
+        const user = userCredential.user;
+        console.log(user)
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        setErrorMessage(errorCode + " - " + errorMessage)
+      });
     }
+    else{
+
+    }
+
 };
 
 
@@ -37,7 +54,7 @@ const Login = () => {
     <div>
       <Header />
 
-      <div className="absolute"> 
+      <div className="fixed inset-0 w-full h-screen">
         <img src="https://assets.nflxext.com/ffe/siteui/vlv3/c1366fb4-3292-4428-9639-b73f25539794/3417bf9a-0323-4480-84ee-e1cb2ff0966b/IN-en-20240408-popsignuptwoweeks-perspective_alpha_website_small.jpg"
         alt="Background" />
       </div>
