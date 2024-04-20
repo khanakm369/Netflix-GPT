@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import Header from './Header';
 import {checkValidateData} from "../utilis/Validate";
-import {  createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../utilis/firebase';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import {  getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
@@ -14,36 +15,29 @@ const Login = () => {
 
 
   const handleButtonClick = () => {
+    const auth = getAuth();
   
-
-    const message = checkValidateData(email.current.value, password.current.value);
+    const emailValue = email.current.value;
+    const passwordValue = password.current.value;
+    const message = checkValidateData(emailValue, passwordValue);
     setErrorMessage(message);
-
+  
     if (message) return;
-
-    if(!isSignInForm){
-      createUserWithEmailAndPassword(
-        auth, 
-        email.current.value, 
-        password.current.value
-      )
+  
+    const action = isSignInForm ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
+    action(auth, emailValue, passwordValue)
       .then((userCredential) => {
-        // Signed up 
+        // Handle the response
         const user = userCredential.user;
-        console.log(user)
-        // ...
+        console.log('User:', user);
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        setErrorMessage(errorCode + " - " + errorMessage)
+        // More detailed error logging for debugging
+        console.error('Authentication Error:', error);
+        setErrorMessage(error.message);
       });
-    }
-    else{
-
-    }
-
-};
+  };
+  
 
 
   const toggleSignInForm = () => {
@@ -73,13 +67,13 @@ const Login = () => {
         )}
 
         <input 
-          ref={emailRef}
+          ref={email}
           type="text" 
           placeholder="Email Address" 
           className="p-4 my-4 w-full bg-gray-700 opacity-50"
         />
         <input 
-          ref={passwordRef}
+          ref={password}
           type="password" 
           placeholder="Password" 
           className="p-4 my-4 w-full bg-gray-700 opacity-50"
